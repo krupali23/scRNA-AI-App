@@ -1,0 +1,65 @@
+name: R CI & Docs
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  r-check:
+    name: R check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        r: [4.2, 4.3, 4.5]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r }}
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev libgit2-dev
+      - name: Install R package dependencies
+        run: R -e 'install.packages("remotes", repos="https://cloud.r-project.org"); remotes::install_deps(dependencies = TRUE)'
+      - name: Run tests or checks
+        run: |
+          if [ -f DESCRIPTION ]; then
+            R -e 'if (!requireNamespace("devtools", quietly=TRUE)) install.packages("devtools"); devtools::check()'
+          else
+            if [ -d tests ]; then
+              R -e 'if (!requireNamespace("testthat", quietly=TRUE)) install.packages("testthat"); testthat::test_dir("tests")'
+            else
+              echo "No DESCRIPTION/test directory found — skipping checks/tests"
+            fi
+          fi
+
+  build-and-deploy-docs:
+    name: Build and deploy pkgdown site
+    needs: r-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 4.5
+      - name: Install dependencies
+        run: R -e 'install.packages(c("remotes", "pkgdown"), repos="https://cloud.r-project.org"); remotes::install_deps(dependencies=TRUE)'
+      - name: Build pkgdown site
+        run: |
+          R -e 'pkgdown::build_site()'
+      - name: Upload artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./docs
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
