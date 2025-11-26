@@ -148,6 +148,25 @@ ui <- dashboardPage(
             plotlyOutput("pca_cluster_plot")
           )
         )
+        ,
+        fluidRow(
+          box(title = "UMAP Previews (per-resolution)", width = 12, status = "primary",
+              fluidRow(
+                column(width = 3,
+                    selectInput("umap_selector", "Select UMAP image:", choices = NULL),
+                    downloadButton("download_umap", "Download PNG"),
+                    br(),
+                    tags$div(style='margin-top:8px;',
+                        tags$strong('Gallery (click to select):'),
+                        uiOutput('umap_gallery')
+                    )
+                ),
+                column(width = 9,
+                       uiOutput("umap_image_ui")
+                )
+              )
+          )
+        )
       ),
       
       # ===== TAB 5: CLUSTERING =====
@@ -256,6 +275,64 @@ ui <- dashboardPage(
 # SERVER
 # ============================================================================
 server <- function(input, output, session) {
+  # Expose per-resolution UMAP images directory to the Shiny static resources
+  umap_dir <- normalizePath(file.path("..","data","processed","umap_per_resolution"), mustWork = FALSE)
+  if (dir.exists(umap_dir)) {
+    addResourcePath('umap_images', umap_dir)
+  }
+
+  # Helper to list available UMAP images (basename only)
+  list_umap_images <- function(){
+    if(dir.exists(umap_dir)){
+      tools::file_path_sans_ext(basename(list.files(umap_dir, pattern='\\.png$', full.names=TRUE)))
+    } else character(0)
+  }
+
+  # Populate selector once on app start
+  observe({
+    imgs <- list.files(umap_dir, pattern='\\.png$', full.names=FALSE)
+    if(length(imgs)>0){
+      updateSelectInput(session, 'umap_selector', choices = imgs, selected = imgs[1])
+    }
+  })
+
+  # Render UMAP image UI (uses the resource path 'umap_images')
+  output$umap_image_ui <- renderUI({
+    imgs <- list.files(umap_dir, pattern='\\.png$', full.names=FALSE)
+    if(length(imgs)==0) return(tags$p('No UMAP images found in data/processed/umap_per_resolution'))
+    sel <- input$umap_selector
+    if(is.null(sel) || !(sel %in% imgs)) sel <- imgs[1]
+    tags$div(style = 'text-align:center;',
+             tags$img(src = file.path('umap_images', sel), style = 'max-width:100%; height:auto; border:1px solid #ddd;'))
+  })
+
+  # Render clickable gallery of thumbnails
+  output$umap_gallery <- renderUI({
+    imgs <- list.files(umap_dir, pattern='\\.png$', full.names=FALSE)
+    if(length(imgs)==0) return(NULL)
+    # create clickable thumbnails that set the select input when clicked
+    thumbs <- lapply(imgs, function(fn){
+      # safe JS to set input value
+      js <- sprintf("Shiny.setInputValue('umap_selector', '%s', {priority: 'event'})", fn)
+      tags$div(style='display:inline-block; margin:4px; text-align:center;',
+               tags$img(src = file.path('umap_images', fn), onclick = HTML(js), style='width:120px; height:auto; cursor:pointer; border:1px solid #ccc;'),
+               tags$div(style='font-size:11px; margin-top:4px; max-width:120px; word-wrap:break-word;', fn)
+      )
+    })
+    tags$div(style='display:flex; flex-wrap:wrap; align-items:flex-start;', thumbs)
+  })
+
+  # Download selected UMAP image
+  output$download_umap <- downloadHandler(
+    filename = function(){
+      if(is.null(input$umap_selector) || input$umap_selector=='') return('umap.png')
+      input$umap_selector
+    },
+    content = function(file){
+      src <- file.path(umap_dir, input$umap_selector)
+      file.copy(src, file, overwrite=TRUE)
+    }
+  )
   
   # Reactive data
   metadata_reactive <- reactive({
