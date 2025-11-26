@@ -1,0 +1,126 @@
+# Git ignore patterns
+# See https://help.github.com/articles/ignoring-files for more about ignoring files.
+
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+.RDataTmp
+
+# User-specific files
+.Ruserdata
+
+# Example code in package build process
+*-Ex.R
+
+# Output files from R CMD build
+/*.tar.gz
+
+# Output files from R CMD check
+/*.Rcheck/
+
+# RStudio files
+.Rproj.user/
+.Rproject.user/
+*.Rproj
+.Rprofile
+
+# produced vignette files
+vignettes/*.html
+vignettes/*.pdf
+
+# OAuth2 token, as an example. But see http://stat.ethz.ch/R-manual/R-devel/library/base/html/readRDS.html
+.httr-oauth
+
+# knitr and R markdown default cache directories
+*_cache/
+/cache/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Data files (keep .gitkeep in empty dirs)
+data/raw/**
+data/processed/**
+ml_models/**
+*.rds
+*.h5
+*.pkl
+*.parquet
+
+# Logs
+logs/
+*.log
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Sensitive files
+secrets/
+credentials.json
+config/local.yml
+
+# Project specific
+shiny.log
+crash-log.txt
+
+# Keep important directories empty
+!data/.gitkeep
+!ml_models/.gitkeep
+!tests/.gitkeep

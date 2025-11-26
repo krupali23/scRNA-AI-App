@@ -1,0 +1,44 @@
+# Docker Compose for development with Python services
+version: '3.8'
+
+services:
+  shiny-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.r
+    ports:
+      - "3838:3838"
+    environment:
+      - AZURE_ENDPOINT=${AZURE_ENDPOINT}
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    volumes:
+      - ./data:/home/shiny/data
+      - ./ml_models:/home/shiny/ml_models
+    depends_on:
+      - python-api
+
+  python-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    ports:
+      - "8000:8000"
+    environment:
+      - AZURE_ENDPOINT=${AZURE_ENDPOINT}
+      - AZURE_API_KEY=${AZURE_API_KEY}
+    volumes:
+      - ./data:/app/data
+      - ./ml_models:/app/ml_models
+
+  llm-gateway:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+
+volumes:
+  ollama-data:
