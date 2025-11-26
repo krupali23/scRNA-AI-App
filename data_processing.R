@@ -2,10 +2,24 @@
 # Handles loading, QC, and preprocessing of scRNA-seq data
 
 library(Seurat)
-library(SingleCellExperiment)
-library(scater)
-library(scran)
 library(tidyverse)
+
+# Optional Bioconductor packages: load if available, otherwise continue
+if (requireNamespace("SingleCellExperiment", quietly = TRUE)) {
+  library(SingleCellExperiment)
+} else {
+  message("Note: 'SingleCellExperiment' not available — some functions may be limited.")
+}
+if (requireNamespace("scater", quietly = TRUE)) {
+  library(scater)
+} else {
+  message("Note: 'scater' not available — skipping scater-dependent steps.")
+}
+if (requireNamespace("scran", quietly = TRUE)) {
+  library(scran)
+} else {
+  message("Note: 'scran' not available — skipping scran-dependent steps.")
+}
 
 #' Load GSE Data Files
 #' @param data_dir Directory containing raw scRNA-seq files

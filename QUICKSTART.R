@@ -10,10 +10,19 @@ library(tidyverse)
 library(plotly)
 library(DT)
 
-# Source utility functions
-source("data_processing.R")
-source("chatbot_utils.R")
-source("ml_models.R")
+# Source utility functions (non-blocking: optional modules)
+tryCatch(
+  source("data_processing.R"),
+  error = function(e) message("Note: data_processing.R failed to load (optional): ", e$message)
+)
+tryCatch(
+  source("chatbot_utils.R"),
+  error = function(e) message("Note: chatbot_utils.R failed to load (optional): ", e$message)
+)
+tryCatch(
+  source("ml_models.R"),
+  error = function(e) message("Note: ml_models.R failed to load (optional): ", e$message)
+)
 
 # ============================================================================
 # STEP 1: Load Data
